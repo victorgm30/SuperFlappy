@@ -2,8 +2,10 @@ import pygame
 import os
 import random
 
-W_WIDTH = 500
-W_HEIGHT = 800
+from pygame import Surface, Rect
+from pygame.font import Font
+
+from Const import WIN_WIDTH, WIN_HEIGHT, MENU_OPTION, C_YELLOW, C_WHITE, C_ORANGE
 
 IMAGE_PIPE = pygame.transform.scale2x(pygame.image.load(os.path.join('assets', 'pipe.png')))
 IMAGE_FLOOR = pygame.transform.scale2x(pygame.image.load(os.path.join('assets', 'base.png')))
@@ -15,7 +17,57 @@ IMAGES_CHARACTER = [
 ]
 
 pygame.font.init()
+pygame.mixer.init()
 FONT_POINTS = pygame.font.SysFont('ariel', 50)
+
+
+class Menu:
+    def __init__(self, window):
+        self.window = window
+        self.surf = pygame.image.load('./assets/Menu.png').convert_alpha()
+        self.rect = self.surf.get_rect(left=0, top=0)
+
+    def run(self):
+        menu_option = 0
+        pygame.mixer_music.load('./assets/Menu.mp3')
+        pygame.mixer_music.play(-1)
+        while True:
+            # DRAW IMAGES
+            self.window.blit(source=self.surf, dest=self.rect)
+            self.menu_text(50,"Super", C_ORANGE, ((WIN_WIDTH / 2), 70))
+            self.menu_text(50, "Flappy", C_ORANGE, ((WIN_WIDTH / 2), 120))
+
+            for i in range(len(MENU_OPTION)):
+                if i == menu_option:
+                    self.menu_text(20, MENU_OPTION[i], C_YELLOW, ((WIN_WIDTH / 2), 200 + 25 * i))
+                else:
+                    self.menu_text(20, MENU_OPTION[i], C_ORANGE, ((WIN_WIDTH / 2), 200 + 25 * i))
+            pygame.display.flip()
+
+            # Check for all events
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()  # Close Window
+                    quit()  # End Pygame
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_DOWN:  # DOWN KEY
+                        if menu_option < len(MENU_OPTION) - 1:
+                            menu_option += 1
+                        else:
+                            menu_option = 0
+                    if event.key == pygame.K_UP:  # UP KEY
+                        if menu_option > 0:
+                            menu_option -= 1
+                        else:
+                            menu_option = len(MENU_OPTION) - 1
+                    if event.key == pygame.K_RETURN:  # ENTER
+                        return MENU_OPTION[menu_option]
+
+    def menu_text(self, text_size: int, text: str, text_color: tuple, text_center_pos: tuple):
+        text_font: Font = pygame.font.SysFont(name="Lucida Sans Typewriter", size=text_size)
+        text_surf: Surface = text_font.render(text, True, text_color).convert_alpha()
+        text_rect: Rect = text_surf.get_rect(center=text_center_pos)
+        self.window.blit(source=text_surf,  dest=text_rect)
 
 
 class Character:
@@ -171,63 +223,74 @@ def draw_window(window, characters, pipes, floor, points):
         pipe.draw(window)
 
     text = FONT_POINTS.render(f'Pontuação: {points}', 1, (255, 255, 255))
-    window.blit(text, (W_WIDTH - 10 - text.get_width(), 10))
+    window.blit(text, (WIN_WIDTH - 10 - text.get_width(), 10))
     floor.draw(window)
     pygame.display.update()
 
 
 def main():
-    characters = [Character(230, 350)]
-    floor = Floor(730)
-    pipes = [Pipe(700)]
-    window = pygame.display.set_mode((W_WIDTH, W_HEIGHT))
-    points = 0
-    clock = pygame.time.Clock()
+    window = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
 
-    running = True
-    while running:
-        clock.tick(30)
+    # Menu and wait for the selection
+    menu = Menu(window)
+    selected_option = menu.run()
 
-        # User interaction
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-                pygame.quit()
-                quit()
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
-                    for character in characters:
-                        character.jump()
+    if selected_option == 'NEW GAME':
+        characters = [Character(230, 350)]
+        floor = Floor(730)
+        pipes = [Pipe(700)]
+        points = 0
+        clock = pygame.time.Clock()
 
-        # Moving objects
-        for character in characters:
-            character.move()
-            floor.move()
+        running = True
+        while running:
+            clock.tick(30)
 
-        add_pipes = False
-        remove_pipes = []
-        for pipe in pipes:
+            # Player interactions
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                    pygame.quit()
+                    quit()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE:
+                        for character in characters:
+                            character.jump()
+
+            # Movement of objects
+            for character in characters:
+                character.move()
+                floor.move()
+
+            add_pipes = False
+            remove_pipes = []
+            for pipe in pipes:
+                for i, character in enumerate(characters):
+                    if pipe.clash(character):
+                        characters.pop(i)
+                    if not pipe.passed and character.x > pipe.x:
+                        pipe.passed = True
+                        add_pipes = True
+                pipe.move()
+                if pipe.x + pipe.pipe_top.get_width() < 0:
+                    remove_pipes.append(pipe)
+
+            if add_pipes:
+                points += 1
+                pipes.append(Pipe(600))
+            for pipe in remove_pipes:
+                pipes.remove(pipe)
+
             for i, character in enumerate(characters):
-                if pipe.clash(character):
+                if (character.y + character.img[0].get_height()) > floor.y or character.y < 0:
                     characters.pop(i)
-                if not pipe.passed and character.x > pipe.x:
-                    pipe.passed = True
-                    add_pipes = True
-            pipe.move()
-            if pipe.x + pipe.pipe_top.get_width() < 0:
-                remove_pipes.append(pipe)
 
-        if add_pipes:
-            points += 1
-            pipes.append(Pipe(600))
-        for pipe in remove_pipes:
-            pipes.remove(pipe)
+            draw_window(window, characters, pipes, floor, points)
 
-        for i, character in enumerate(characters):
-            if (character.y + character.img[0].get_height()) > floor.y or character.y < 0:
-                characters.pop(i)
-
-        draw_window(window, characters, pipes, floor, points)
+    # "EXIT", Game quit
+    elif selected_option == 'EXIT':
+        pygame.quit()
+        quit()
 
 
 if __name__ == '__main__':
