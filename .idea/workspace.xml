@@ -4,10 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d75e75cf-19ce-4c3a-af2b-f7bb00ad23ca" name="Changes" comment="Creating project &#10;Creating class Character">
-      <change afterPath="$PROJECT_DIR$/SuperFlappy.py" afterDir="false" />
+    <list default="true" id="d75e75cf-19ce-4c3a-af2b-f7bb00ad23ca" name="Changes" comment="Creating attributes of character and pipes.">
+      <change afterPath="$PROJECT_DIR$/Const.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Menu.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SuperFlappy.py" beforeDir="false" afterPath="$PROJECT_DIR$/SuperFlappy.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -33,13 +35,14 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Python.SuperFlappy.executor": "Run",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "master"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\vitor\Desktop\FlappyBird\SuperFlappy" />
@@ -93,11 +96,20 @@
       <option name="project" value="LOCAL" />
       <updated>1742436679552</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Creating attributes of character and pipes.">
+      <option name="closed" value="true" />
+      <created>1742527173749</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1742527173749</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Creating project &#10;Creating class Character" />
-    <option name="LAST_COMMIT_MESSAGE" value="Creating project &#10;Creating class Character" />
+    <MESSAGE value="Creating attributes of character and pipes." />
+    <option name="LAST_COMMIT_MESSAGE" value="Creating attributes of character and pipes." />
   </component>
 </project>
