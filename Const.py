@@ -13,7 +13,7 @@ C_CYAN = (0, 128, 128)
 MENU_OPTION = ('NEW GAME',
                'SCORE',
                'EXIT',
-               'COMANDO ESPAÇO PARA PULAR')
+               'COMANDO: ESPAÇO PARA PULAR')
 
 # W
 WIN_WIDTH = 500

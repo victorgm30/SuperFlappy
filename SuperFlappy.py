@@ -25,6 +25,7 @@ class Menu:
     def __init__(self, window):
         self.window = window
         self.surf = pygame.image.load('./assets/Menu.png').convert_alpha()
+        self.surf = pygame.transform.scale(self.surf, (WIN_WIDTH, WIN_HEIGHT))
         self.rect = self.surf.get_rect(left=0, top=0)
 
     def run(self):
@@ -34,14 +35,14 @@ class Menu:
         while True:
             # DRAW IMAGES
             self.window.blit(source=self.surf, dest=self.rect)
-            self.menu_text(50,"Super", C_ORANGE, ((WIN_WIDTH / 2), 70))
-            self.menu_text(50, "Flappy", C_ORANGE, ((WIN_WIDTH / 2), 120))
+            self.menu_text(50, "Super", C_ORANGE, ((WIN_WIDTH / 2), 330))
+            self.menu_text(50, "Flappy", C_ORANGE, ((WIN_WIDTH / 2), 380))
 
             for i in range(len(MENU_OPTION)):
                 if i == menu_option:
-                    self.menu_text(20, MENU_OPTION[i], C_YELLOW, ((WIN_WIDTH / 2), 200 + 25 * i))
+                    self.menu_text(20, MENU_OPTION[i], C_YELLOW, ((WIN_WIDTH / 2), 440 + 25 * i))
                 else:
-                    self.menu_text(20, MENU_OPTION[i], C_ORANGE, ((WIN_WIDTH / 2), 200 + 25 * i))
+                    self.menu_text(20, MENU_OPTION[i], C_ORANGE, ((WIN_WIDTH / 2), 440 + 25 * i))
             pygame.display.flip()
 
             # Check for all events
@@ -67,7 +68,7 @@ class Menu:
         text_font: Font = pygame.font.SysFont(name="Lucida Sans Typewriter", size=text_size)
         text_surf: Surface = text_font.render(text, True, text_color).convert_alpha()
         text_rect: Rect = text_surf.get_rect(center=text_center_pos)
-        self.window.blit(source=text_surf,  dest=text_rect)
+        self.window.blit(source=text_surf, dest=text_rect)
 
 
 class Character:
@@ -162,7 +163,7 @@ class Pipe:
         self.define_height()
 
     def define_height(self):
-        self.height = random.randrange(50, 450)
+        self.height = random.randrange(100, WIN_HEIGHT - 150)
         self.pos_top = self.height - self.pipe_top.get_height()
         self.pos_bottom = self.height + self.DISTANCE
 
@@ -174,20 +175,17 @@ class Pipe:
         window.blit(self.pipe_bottom, (self.x, self.pos_bottom))
 
     def clash(self, character):
-        character_mask = character.get_mask()
-        top_mask = pygame.mask.from_surface(self.pipe_top)
-        bottom_mask = pygame.mask.from_surface(self.pipe_bottom)
+        char_width = character.img[0].get_width()
+        char_height = character.img[0].get_height()
 
-        distance_top = (self.x - character.x, self.pos_top - round(character.y))
-        distance_bottom = (self.x - character.x, self.pos_bottom - round(character.y))
+        print(f"Character X: {character.x}, Y: {character.y}")
+        print(f"Cano X: {self.x}, Top: {self.pos_top}, Bottom: {self.pos_bottom}")
 
-        top_point = character_mask.overlap(top_mask, distance_top)
-        bottom_point = character_mask.overlap(bottom_mask, distance_bottom)
-
-        if bottom_point or top_point:
-            return True
-        else:
-            return False
+        if character.x + char_width > self.x and character.x < self.x + self.pipe_top.get_width():
+            if (character.y <= self.pos_top + self.pipe_top.get_height() or
+                    character.y + char_height >= self.pos_bottom):
+                return True
+        return False
 
 
 class Floor:
@@ -228,69 +226,111 @@ def draw_window(window, characters, pipes, floor, points):
     pygame.display.update()
 
 
+def game_over(window, points):
+    # Game Over window
+    window.fill((0, 0, 0))  # Black window
+
+    # Text "Game Over"
+    game_over_text = FONT_POINTS.render("GAME OVER", True, C_YELLOW)
+    window.blit(game_over_text, (WIN_WIDTH / 2 - game_over_text.get_width() / 2, WIN_HEIGHT / 3))
+
+    # Final score
+    score_text = FONT_POINTS.render(f'Pontuação: {points}', True, C_ORANGE)
+    window.blit(score_text, (WIN_WIDTH / 2 - score_text.get_width() / 2, WIN_HEIGHT / 2))
+
+    # Restart or Exit
+    line1 = FONT_POINTS.render("Pressione 'R' para Reiniciar", True, C_ORANGE)
+    line2 = FONT_POINTS.render("ou 'Q' para Sair", True, C_ORANGE)
+    window.blit(line1, (WIN_WIDTH / 2 - line1.get_width() / 2, WIN_HEIGHT / 1.5))
+    window.blit(line2, (WIN_WIDTH / 2 - line2.get_width() / 2, WIN_HEIGHT / 1.3))
+
+    pygame.display.flip()
+
+    # User input
+    waiting_for_input = True
+    while waiting_for_input:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_q:
+                    pygame.quit()
+                    quit()
+                if event.key == pygame.K_r:
+                    return True
+    return False
+
+
 def main():
     window = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
 
-    # Menu and wait for the selection
-    menu = Menu(window)
-    selected_option = menu.run()
+    # Main loop
+    while True:
+        menu = Menu(window)
+        selected_option = menu.run()
 
-    if selected_option == 'NEW GAME':
-        characters = [Character(230, 350)]
-        floor = Floor(730)
-        pipes = [Pipe(700)]
-        points = 0
-        clock = pygame.time.Clock()
+        if selected_option == 'NEW GAME':
+            characters = [Character(230, 350)]
+            floor = Floor(730)
+            pipes = [Pipe(700)]
+            points = 0
+            clock = pygame.time.Clock()
 
-        running = True
-        while running:
-            clock.tick(30)
+            running = True
+            while running:
+                clock.tick(30)
 
-            # Player interactions
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
-                    pygame.quit()
-                    quit()
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_SPACE:
-                        for character in characters:
-                            character.jump()
+                # Player interactions
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        running = False
+                        pygame.quit()
+                        quit()
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_SPACE:
+                            for character in characters:
+                                character.jump()
 
-            # Movement of objects
-            for character in characters:
-                character.move()
-                floor.move()
+                # Movement of objects
+                for character in characters:
+                    character.move()
+                    floor.move()
 
-            add_pipes = False
-            remove_pipes = []
-            for pipe in pipes:
+                add_pipes = False
+                remove_pipes = []
+                for pipe in pipes:
+                    for i, character in enumerate(characters):
+                        if pipe.clash(character):  # If collision
+                            running = False  # Quit loop game
+                            if game_over(window, points):  # Game Over
+                                break  # Interrupts collisions verification
+
+                        if not pipe.passed and character.x > pipe.x:
+                            pipe.passed = True
+                            add_pipes = True
+                    pipe.move()
+                    if pipe.x + pipe.pipe_top.get_width() < 0:
+                        remove_pipes.append(pipe)
+
+                if add_pipes:
+                    points += 1
+                    pipes.append(Pipe(600))
+                for pipe in remove_pipes:
+                    pipes.remove(pipe)
+
                 for i, character in enumerate(characters):
-                    if pipe.clash(character):
-                        characters.pop(i)
-                    if not pipe.passed and character.x > pipe.x:
-                        pipe.passed = True
-                        add_pipes = True
-                pipe.move()
-                if pipe.x + pipe.pipe_top.get_width() < 0:
-                    remove_pipes.append(pipe)
+                    if (character.y + character.img[0].get_height()) > floor.y or character.y < 0:
+                        running = False
+                        if game_over(window, points):
+                            break
 
-            if add_pipes:
-                points += 1
-                pipes.append(Pipe(600))
-            for pipe in remove_pipes:
-                pipes.remove(pipe)
+                draw_window(window, characters, pipes, floor, points)
 
-            for i, character in enumerate(characters):
-                if (character.y + character.img[0].get_height()) > floor.y or character.y < 0:
-                    characters.pop(i)
-
-            draw_window(window, characters, pipes, floor, points)
-
-    # "EXIT", Game quit
-    elif selected_option == 'EXIT':
-        pygame.quit()
-        quit()
+        # "EXIT", Game quit
+        elif selected_option == 'EXIT':
+            pygame.quit()
+            quit()
 
 
 if __name__ == '__main__':
