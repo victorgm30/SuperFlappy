@@ -72,12 +72,11 @@ class Menu:
 
 
 class Character:
-    imgs = IMAGES_CHARACTER
+    IMGS = IMAGES_CHARACTER
     # Rotation animations
     rot_max = 25
     rot_speed = 20
     time_anim = 5
-    scale_factor = 0.2
 
     def __init__(self, x, y):
         self.x = x
@@ -87,7 +86,7 @@ class Character:
         self.height = self.y
         self.time = 0
         self.img_position = 0
-        self.img = self.imgs[0]
+        self.img = self.IMGS[0]
 
     def jump(self):
         self.speed = -10.5
@@ -115,31 +114,33 @@ class Character:
             if self.angle > -90:
                 self.angle -= self.rot_speed
 
-    def draw(self, window):
+    def draw(self, window): 
         # Animate image frames
         self.img_position += 1
 
         if self.img_position < self.time_anim:
-            self.img = self.imgs[0]
+            self.img = self.IMGS[0]
         elif self.img_position < self.time_anim * 2:
-            self.img = self.imgs[1]
+            self.img = self.IMGS[1]
         elif self.img_position < self.time_anim * 3:
-            self.img = self.imgs[2]
+            self.img = self.IMGS[2]
         elif self.img_position < self.time_anim * 4:
-            self.img = self.imgs[1]
+            self.img = self.IMGS[1]
         elif self.img_position >= self.time_anim * 4 + 1:
-            self.img = self.imgs[0]
+            self.img = self.IMGS[0]
             self.img_position = 0
 
         # Down image
         if self.angle <= -80:
-            self.img = self.imgs[1]
+            self.img = self.IMGS[1]
             self.img_position = self.time_anim * 2
 
         # Draw image
         rot_img = pygame.transform.rotate(self.img, self.angle)
-        pos_center_img = self.img.get_rect(topleft=(self.x, self.y)).center
+
+        pos_center_img = rot_img.get_rect(topleft=(self.x, self.y)).center
         rectangle = rot_img.get_rect(center=pos_center_img)
+
         window.blit(rot_img, rectangle.topleft)
 
     def get_mask(self):
@@ -162,7 +163,7 @@ class Pipe:
         self.define_height()
 
     def define_height(self):
-        self.height = random.randrange(50, WIN_HEIGHT - 450)
+        self.height = random.randrange(50, 450)
         self.pos_top = self.height - self.pipe_top.get_height()
         self.pos_bottom = self.height + self.DISTANCE
 
@@ -279,22 +280,17 @@ def main():
             characters = [Character(230, 350)]
             floor = Floor(730)
             pipes = [Pipe(700)]
-            tela = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
+            window = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
             points = 0
             clock = pygame.time.Clock()
 
             running = True
-            first_move = True
 
             while running:
                 clock.tick(30)
 
                 # Player interactions
                 for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        running = False
-                        pygame.quit()
-                        quit()
                     if event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_SPACE:
                             for character in characters:
@@ -303,17 +299,14 @@ def main():
                 # Movement of objects
                 for character in characters:
                     character.move()
-                    floor.move()
+                floor.move()
 
                 add_pipes = False
                 remove_pipes = []
                 for pipe in pipes:
                     for i, character in enumerate(characters):
                         if pipe.clash(character):  # If collision
-                            running = False  # Quit loop game
-                            if game_over(window, points):  # Game Over
-                                break  # Interrupts collisions verification
-
+                            characters.pop()  # Quit loop game
                         if not pipe.passed and character.x > pipe.x:
                             pipe.passed = True
                             add_pipes = True
@@ -328,10 +321,8 @@ def main():
                     pipes.remove(pipe)
 
                 for i, character in enumerate(characters):
-                    if (character.y + character.imgs[0].get_height()) > floor.y or character.y < 0:
-                        running = False
-                        if game_over(window, points):
-                            break
+                    if (character.y + character.img.get_height()) > floor.y or character.y < 0:
+                        characters.pop(i)
 
                 draw_window(window, characters, pipes, floor, points)
 

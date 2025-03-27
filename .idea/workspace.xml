@@ -4,9 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d75e75cf-19ce-4c3a-af2b-f7bb00ad23ca" name="Changes" comment="Image Menu ok.&#10;Verify collision.">
-      <change afterPath="$PROJECT_DIR$/DBProxy.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Score.py" afterDir="false" />
+    <list default="true" id="d75e75cf-19ce-4c3a-af2b-f7bb00ad23ca" name="Changes" comment="Sound game and creating BDProxy.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SuperFlappy.py" beforeDir="false" afterPath="$PROJECT_DIR$/SuperFlappy.py" afterDir="false" />
     </list>
@@ -128,7 +126,23 @@
       <option name="project" value="LOCAL" />
       <updated>1742959206082</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="Sound game and creating BDProxy.">
+      <option name="closed" value="true" />
+      <created>1743049086188</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1743049086188</updated>
+    </task>
+    <task id="LOCAL-00007" summary="Sound game and creating BDProxy.">
+      <option name="closed" value="true" />
+      <created>1743049212111</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1743049212111</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -137,6 +151,7 @@
     <MESSAGE value="Game running and creating Menu." />
     <MESSAGE value="Menu, images and sound." />
     <MESSAGE value="Image Menu ok.&#10;Verify collision." />
-    <option name="LAST_COMMIT_MESSAGE" value="Image Menu ok.&#10;Verify collision." />
+    <MESSAGE value="Sound game and creating BDProxy." />
+    <option name="LAST_COMMIT_MESSAGE" value="Sound game and creating BDProxy." />
   </component>
 </project>
