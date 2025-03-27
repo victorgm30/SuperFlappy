@@ -72,7 +72,7 @@ class Menu:
 
 
 class Character:
-    img = IMAGES_CHARACTER
+    imgs = IMAGES_CHARACTER
     # Rotation animations
     rot_max = 25
     rot_speed = 20
@@ -87,9 +87,7 @@ class Character:
         self.height = self.y
         self.time = 0
         self.img_position = 0
-
-        self.img = [pygame.transform.scale(image, (int(image.get_width() * self.scale_factor),
-                                                   int(image.get_height() * self.scale_factor))) for image in self.img]
+        self.img = self.imgs[0]
 
     def jump(self):
         self.speed = -10.5
@@ -102,8 +100,8 @@ class Character:
         displacement = 1.5 * (self.time ** 2) + self.speed * self.time
 
         # Restrict the displacement
-        if displacement > 10:
-            displacement = 10
+        if displacement > 16:
+            displacement = 16
         elif displacement < 0:
             displacement -= 2
 
@@ -120,32 +118,33 @@ class Character:
     def draw(self, window):
         # Animate image frames
         self.img_position += 1
+
         if self.img_position < self.time_anim:
-            img = self.img[0]
+            self.img = self.imgs[0]
         elif self.img_position < self.time_anim * 2:
-            img = self.img[1]
+            self.img = self.imgs[1]
         elif self.img_position < self.time_anim * 3:
-            img = self.img[2]
+            self.img = self.imgs[2]
         elif self.img_position < self.time_anim * 4:
-            img = self.img[1]
-        else:
-            img = self.img[0]
-            self.img_position = 0  # Reset animation cycle
+            self.img = self.imgs[1]
+        elif self.img_position >= self.time_anim * 4 + 1:
+            self.img = self.imgs[0]
+            self.img_position = 0
 
         # Down image
         if self.angle <= -80:
-            img = self.img[1]
+            self.img = self.imgs[1]
             self.img_position = self.time_anim * 2
 
         # Draw image
-        rot_img = pygame.transform.rotate(img, self.angle)
-        pos_center_img = img.get_rect(topleft=(self.x, self.y)).center
+        rot_img = pygame.transform.rotate(self.img, self.angle)
+        pos_center_img = self.img.get_rect(topleft=(self.x, self.y)).center
         rectangle = rot_img.get_rect(center=pos_center_img)
         window.blit(rot_img, rectangle.topleft)
 
     def get_mask(self):
         #  Collision
-        return pygame.mask.from_surface(self.img[0])
+        return pygame.mask.from_surface(self.img)
 
 
 class Pipe:
@@ -163,7 +162,7 @@ class Pipe:
         self.define_height()
 
     def define_height(self):
-        self.height = random.randrange(100, WIN_HEIGHT - 150)
+        self.height = random.randrange(50, WIN_HEIGHT - 450)
         self.pos_top = self.height - self.pipe_top.get_height()
         self.pos_bottom = self.height + self.DISTANCE
 
@@ -175,17 +174,20 @@ class Pipe:
         window.blit(self.pipe_bottom, (self.x, self.pos_bottom))
 
     def clash(self, character):
-        char_width = character.img[0].get_width()
-        char_height = character.img[0].get_height()
+        character_mask = character.get_mask()
+        top_mask = pygame.mask.from_surface(self.pipe_top)
+        bottom_mask = pygame.mask.from_surface(self.pipe_bottom)
 
-        print(f"Character X: {character.x}, Y: {character.y}")
-        print(f"Cano X: {self.x}, Top: {self.pos_top}, Bottom: {self.pos_bottom}")
+        dist_top = (self.x - character.x, self.pos_top - round(character.y))
+        dist_bottom = (self.x - character.x, self.pos_bottom - round(character.y))
 
-        if character.x + char_width > self.x and character.x < self.x + self.pipe_top.get_width():
-            if (character.y <= self.pos_top + self.pipe_top.get_height() or
-                    character.y + char_height >= self.pos_bottom):
-                return True
-        return False
+        top_point = character_mask.overlap(top_mask, dist_top)
+        bottom_point = character_mask.overlap(bottom_mask, dist_bottom)
+
+        if bottom_point or top_point:
+            return True
+        else:
+            return False
 
 
 class Floor:
@@ -265,6 +267,9 @@ def game_over(window, points):
 def main():
     window = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
 
+    pygame.mixer.music.load('./assets/GameSound.mp3')
+    pygame.mixer.music.play(-1)
+
     # Main loop
     while True:
         menu = Menu(window)
@@ -274,10 +279,13 @@ def main():
             characters = [Character(230, 350)]
             floor = Floor(730)
             pipes = [Pipe(700)]
+            tela = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
             points = 0
             clock = pygame.time.Clock()
 
             running = True
+            first_move = True
+
             while running:
                 clock.tick(30)
 
@@ -320,7 +328,7 @@ def main():
                     pipes.remove(pipe)
 
                 for i, character in enumerate(characters):
-                    if (character.y + character.img[0].get_height()) > floor.y or character.y < 0:
+                    if (character.y + character.imgs[0].get_height()) > floor.y or character.y < 0:
                         running = False
                         if game_over(window, points):
                             break
