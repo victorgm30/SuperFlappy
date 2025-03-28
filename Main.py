@@ -6,6 +6,7 @@ from pygame import Surface, Rect
 from pygame.font import Font
 
 from Const import WIN_WIDTH, WIN_HEIGHT, MENU_OPTION, C_YELLOW, C_WHITE, C_ORANGE
+from Score import Score
 
 IMAGE_PIPE = pygame.transform.scale2x(pygame.image.load(os.path.join('assets', 'pipe.png')))
 IMAGE_FLOOR = pygame.transform.scale2x(pygame.image.load(os.path.join('assets', 'base.png')))
@@ -14,6 +15,12 @@ IMAGES_CHARACTER = [
     pygame.transform.scale2x(pygame.image.load(os.path.join('assets', 'SuperBento1.png'))),
     pygame.transform.scale2x(pygame.image.load(os.path.join('assets', 'SuperBento2.png'))),
     pygame.transform.scale2x(pygame.image.load(os.path.join('assets', 'SuperBento3.png')))
+]
+
+# Character size
+IMAGES_CHARACTER = [
+    pygame.transform.scale(img, (90, 110))
+    for img in IMAGES_CHARACTER
 ]
 
 pygame.font.init()
@@ -62,7 +69,14 @@ class Menu:
                         else:
                             menu_option = len(MENU_OPTION) - 1
                     if event.key == pygame.K_RETURN:  # ENTER
-                        return MENU_OPTION[menu_option]
+                        selected_option = MENU_OPTION[menu_option]
+
+                        if selected_option == 'SCORE':
+                            score = Score(self.window)
+                            score.show()  # Ranking (score)
+                            continue
+
+                        return selected_option
 
     def menu_text(self, text_size: int, text: str, text_color: tuple, text_center_pos: tuple):
         text_font: Font = pygame.font.SysFont(name="Lucida Sans Typewriter", size=text_size)
@@ -114,7 +128,7 @@ class Character:
             if self.angle > -90:
                 self.angle -= self.rot_speed
 
-    def draw(self, window): 
+    def draw(self, window):
         # Animate image frames
         self.img_position += 1
 
@@ -242,10 +256,22 @@ def game_over(window, points):
     window.blit(score_text, (WIN_WIDTH / 2 - score_text.get_width() / 2, WIN_HEIGHT / 2))
 
     # Restart or Exit
-    line1 = FONT_POINTS.render("Pressione 'R' para Reiniciar", True, C_ORANGE)
-    line2 = FONT_POINTS.render("ou 'Q' para Sair", True, C_ORANGE)
-    window.blit(line1, (WIN_WIDTH / 2 - line1.get_width() / 2, WIN_HEIGHT / 1.5))
-    window.blit(line2, (WIN_WIDTH / 2 - line2.get_width() / 2, WIN_HEIGHT / 1.3))
+    line1 = FONT_POINTS.render("Pressione 'S' para Salvar", True, C_ORANGE)
+    line2 = FONT_POINTS.render("Pressione 'L' para Ranking", True, C_ORANGE)
+    line3 = FONT_POINTS.render("Pressione 'R' para Reiniciar", True, C_ORANGE)
+    line4 = FONT_POINTS.render("ou 'Q' para Sair", True, C_ORANGE)
+
+    vertical_spacing = 40  # Adjust vertical spacing as needed
+    line1_pos = (WIN_WIDTH / 2 - line1.get_width() / 2, WIN_HEIGHT / 1.5)
+    line2_pos = (WIN_WIDTH / 2 - line2.get_width() / 2, WIN_HEIGHT / 1.5 + vertical_spacing)
+    line3_pos = (WIN_WIDTH / 2 - line3.get_width() / 2, WIN_HEIGHT / 1.5 + vertical_spacing * 2)
+    line4_pos = (WIN_WIDTH / 2 - line4.get_width() / 2, WIN_HEIGHT / 1.5 + vertical_spacing * 3)
+
+    # Blit the text
+    window.blit(line1, line1_pos)
+    window.blit(line2, line2_pos)
+    window.blit(line3, line3_pos)
+    window.blit(line4, line4_pos)
 
     pygame.display.flip()
 
@@ -253,6 +279,14 @@ def game_over(window, points):
     waiting_for_input = True
     while waiting_for_input:
         for event in pygame.event.get():
+            if event.key == pygame.K_s:
+                score = Score(window)
+                score.save('NEW GAME', [points])  # Salve points
+                return
+            if event.key == pygame.K_l:
+                score = Score(window)
+                score.show()  # Ranking
+                return
             if event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
@@ -306,7 +340,11 @@ def main():
                 for pipe in pipes:
                     for i, character in enumerate(characters):
                         if pipe.clash(character):  # If collision
-                            characters.pop()  # Quit loop game
+                            characters.pop()  # Remove character
+                            if len(characters) == 0:  # If remove characters
+                                game_over(window, points)  # Window Game Over
+                                running = False  # Interrupt Loop
+                                break
                         if not pipe.passed and character.x > pipe.x:
                             pipe.passed = True
                             add_pipes = True
@@ -322,7 +360,11 @@ def main():
 
                 for i, character in enumerate(characters):
                     if (character.y + character.img.get_height()) > floor.y or character.y < 0:
-                        characters.pop(i)
+                        characters.pop(i)  # Remove character
+
+                    if len(characters) == 0:
+                        game_over(window, points)  # Window Game Over
+                        running = False  # Interrupt Loop
 
                 draw_window(window, characters, pipes, floor, points)
 

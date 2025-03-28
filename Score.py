@@ -5,7 +5,7 @@ import pygame
 from pygame import Surface, Rect, KEYDOWN, K_RETURN, K_BACKSPACE, K_ESCAPE
 from pygame.font import Font
 
-from Const import C_YELLOW, SCORE_POS, MENU_OPTION, C_WHITE
+from Const import C_YELLOW, SCORE_POS, MENU_OPTION, C_WHITE, WIN_WIDTH, WIN_HEIGHT
 from DBProxy import DBProxy
 
 
@@ -13,19 +13,20 @@ class Score:
 
     def __init__(self, window: Surface):
         self.window = window
-        self.surf = pygame.image.load('./asset/Menu.png').convert_alpha()
+        self.surf = pygame.image.load('./assets/bg.png').convert_alpha()
+        self.surf = pygame.transform.scale(self.surf, (WIN_WIDTH, WIN_HEIGHT))
         self.rect = self.surf.get_rect(left=0, top=0)
         pass
 
     def save(self, game_mode: str, player_score: list[int]):
-        pygame.mixer_music.load('./asset/Menu.mp3')
+        pygame.mixer_music.load('./assets/Menu.mp3')
         pygame.mixer_music.play(-1)
         db_proxy = DBProxy('DBScore')
         name = ''
 
         while True:
             self.window.blit(source=self.surf, dest=self.rect)
-            self.score_text(48, 'Suuuper Flappy!!', C_YELLOW, SCORE_POS['Title'])
+            self.score_text(48, 'SCORE', C_YELLOW, SCORE_POS['Title'])
             text = 'Enter Player 1 name (4 characters):'
             score = player_score[0]
             if game_mode == MENU_OPTION[0]:
@@ -61,7 +62,7 @@ class Score:
             pass
 
     def show(self):
-        pygame.mixer_music.load('./asset/Score.mp3')
+        pygame.mixer_music.load('./assets/GameSound.mp3')
         pygame.mixer_music.play(-1)
         self.window.blit(source=self.surf, dest=self.rect)
         self.score_text(48, 'TOP 10 SCORE', C_YELLOW, SCORE_POS['Title'])
@@ -84,8 +85,6 @@ class Score:
                     if event.key == K_ESCAPE:
                         return
             pygame.display.flip()
-
-
 
     def score_text(self, text_size: int, text: str, text_color: tuple, text_center_pos: tuple):
         text_font: Font = pygame.font.SysFont(name="Lucida Sans Typewriter", size=text_size)
